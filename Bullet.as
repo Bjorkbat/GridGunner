@@ -1,33 +1,22 @@
 package {
 	import org.flixel.FlxObject;
 	import org.flixel.FlxSprite;
+	import org.flixel.FlxBasic;
+	import org.flixel.FlxCamera;
 	
 	public class Bullet extends FlxSprite {
-		[Embed(source = "projectile.png")]public var Projectile:Class;
-		
-		protected static const SPEED:int = 800;
 		
 		public function Bullet() {
 			super();
-			loadGraphic(Projectile);
 			exists = false;
 		}
 		
-		override public function update():void {
-			if(!alive) {
-				exists = false;
+		override public function overlaps(ObjectOrGroup:FlxBasic,
+			InScreenSpace:Boolean = false, Camera:FlxCamera = null):Boolean {
+			if(exists) {
+				return super.overlaps(ObjectOrGroup);
 			}
-			else super.update();
-			
-			if(y <= 0) {
-				kill();
-			}
-		}
-				
-		public function shoot(X:int, Y:int):void {
-			super.reset(X, Y);
-			solid = true;
-			velocity.y = -800;
+			return false;
 		}
 	}
 }
