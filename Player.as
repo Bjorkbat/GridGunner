@@ -2,7 +2,6 @@ package {
 	import org.flixel.FlxSprite;
 	import org.flixel.FlxG;
 	import org.flixel.FlxGroup;
-	import Bullets;
 	
 	public class Player extends FlxSprite {
 	
@@ -52,8 +51,9 @@ package {
 			var bulletXPos:int = x + 28;
 			var bulletYPos:int = y + 32;
 			
-			var nextBullet:Bullet;
-			nextBullet = bullets.getFirstAvailable() as Bullet;
+			var nextBullet:PlayerBullet;
+			
+			nextBullet = bullets.getFirstAvailable() as PlayerBullet;
 			if(cooldown > GUN_DELAY) {
 				nextBullet.shoot(bulletXPos, bulletYPos);
 				cooldown = 0;
