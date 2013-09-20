@@ -1,51 +1,52 @@
 package {
 	import org.flixel.FlxSprite;
+	import org.flixel.FlxG;
+	import org.flixel.FlxBasic;
+	import org.flixel.FlxCamera;
 	
-	/**
-	 * ...
-	 * @author David Bell
-	 * shamelessly modified by Bjorkbat the Brave
-	 */
 	public class Enemy extends FlxSprite {
-		[Embed(source = "cube_enemy.png")]public var Cube:Class;
 		
-		protected static const SPEED:int = 240;
 		protected var startX:int;
 		protected var startY:int;
+		protected var killFlag:int;
 		
 		public function Enemy(X:Number, Y:Number) {
 			super(X, Y);
 			startX = X;
-			startY = Y;
-						
-			loadGraphic(Cube);  //Set up the graphics
-			
+			startY = Y;			
 			exists = false;
-			drag.y = SPEED * 7;
-			maxVelocity.y = SPEED;
-			
+			killFlag = 0;
 		}
 		
 		public override function update():void {
-			
-			if(!alive) {
-				exists = false;
+			if(!flickering && killFlag) {
+				y = -100;
+				killFlag = 0;
+				super.kill();
 			}
-			else if(y >= 360) {
-				acceleration.y = 0;
+		}
+		
+		public override function kill(): void {
+			if(!flickering && killFlag == 0) {
+				flicker(0.1);
+				killFlag = 1;
 			}
-			else if(y < 360) {
-				acceleration.y = drag.y;
+			else {
+				//Do absolutely nothing!
 			}
-			
-			super.update();
+		}
+		
+		override public function overlaps(ObjectOrGroup:FlxBasic,
+			InScreenSpace:Boolean = false, Camera:FlxCamera = null): Boolean {
+			if(exists) {
+				return super.overlaps(ObjectOrGroup);
+			}
+			return false;
 		}
 		
 		public function genEnemy():void {
 			super.reset(startX, startY);
 			solid = true;
 		}
-	
 	}
-
 }
