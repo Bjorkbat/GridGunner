@@ -1,56 +1,107 @@
 package {
 	import org.flixel.*;
-	import Player;
-	import Enemy;
-	import Bullet;
-	
+	import org.flixel.plugin.photonstorm.FlxScrollZone;
+	import flash.geom.Rectangle;
+
 	public class PlayState extends FlxState {
 	
+		[Embed("background.png")]private var background:Class;
+	
 		protected static const ENEMY_DELAY:Number = 0.5;
-		public var player:Player;
-		protected var bullets:FlxGroup;
-		protected var enemies:FlxGroup;
+		protected var player:Player;
+		protected var playerbullets:FlxGroup;
+		protected var enemybullets:FlxGroup;
+		protected var tetraenemies:FlxGroup;
+		protected var fighterenemies:FlxGroup;
 		protected var genCoolDown:Number;
+		private var scrollingBackground:FlxScrollZone;
+		private var backgroundSprite:FlxSprite;
+		
 		override public function create():void {
-			bullets = new FlxGroup;
-			enemies = new FlxGroup;
+			playerbullets = new FlxGroup;
+			enemybullets = new FlxGroup
+			tetraenemies = new FlxGroup;
+			fighterenemies = new FlxGroup;
+			//	If the FlxScrollZone Plugin isn't already in use, we add it here
+			if (FlxG.getPlugin(FlxScrollZone) == null)
+			{
+				FlxG.addPlugin(new FlxScrollZone);
+			}
+			
+			backgroundSprite = new FlxSprite(0,0);
+			backgroundSprite.loadGraphic(background);
+			FlxScrollZone.add(backgroundSprite, new Rectangle(0, 0, 448, 640), 0, 2);
+			add(backgroundSprite);
 			
 			for(var i:int = 0; i < 32; i ++)
-				bullets.add(new Bullet());
-			add(bullets);
+				playerbullets.add(new PlayerBullet());
+			add(playerbullets);
+			
+			for(i = 0; i < 32; i ++)
+				enemybullets.add(new EnemyBullet());
+			add(enemybullets);
 			
 			for(i = 0; i < 7; i ++) {
-				enemies.add(new Enemy((i*64 + 16), 0));
+				tetraenemies.add(new TetraEnemy((i*64 + 8), 0, enemybullets));
 			}
-			add(enemies);
-			add(player = new Player(240, 560, bullets));
+			for(i = 0; i < 7; i ++) {
+				fighterenemies.add(new EnemyFighter((i*64), 0));
+			}
+			add(tetraenemies);
+			add(fighterenemies);
+			add(player = new Player(240, 560, playerbullets));
 			
 			genCoolDown = ENEMY_DELAY;
 		}
 		
 		override public function update():void {
-			//on event of impact
-			super.update();
-			var nextEnemy:Enemy;
+		
+			var nextTetra:TetraEnemy;
+			var nextFighter:EnemyFighter;
+			
 			for(var i:int = 0; i < 7; i ++) {
-				if(enemies.members[i].overlaps(player) && enemies.members[i].alive) {
+				if(tetraenemies.members[i].overlaps(player)) {
+					player.kill();
+				}
+				else if(fighterenemies.members[i].overlaps(player)) {
 					player.kill();
 				}
 				for(var j:int = 0; j < 32; j ++) {
-					if(bullets.members[j].overlaps(enemies.members[i]) && bullets.members[i].alive) {
-						bullets.members[j].kill();
-						enemies.members[i].kill();
+					if(playerbullets.members[j].overlaps(tetraenemies.members[i])) {
+						playerbullets.members[j].kill();
+						tetraenemies.members[i].kill();
 					}
-				}	
+					else if(playerbullets.members[j].overlaps(fighterenemies.members[i])) {
+						playerbullets.members[j].kill();
+						fighterenemies.members[i].kill();
+					}
+					if(enemybullets.members[j].overlaps(player)) {
+						enemybullets.members[j].kill();
+						player.kill();
+					}
+				}
 			}
 			
-			nextEnemy = enemies.getRandom() as Enemy;
+			
+			nextTetra = tetraenemies.getRandom() as TetraEnemy;
+			nextFighter = fighterenemies.getRandom() as EnemyFighter;
 
-			if(!(nextEnemy.exists) && genCoolDown > ENEMY_DELAY) {
-				nextEnemy.genEnemy();
+			if(!(nextTetra.exists) && genCoolDown > ENEMY_DELAY) {
+				nextTetra.genEnemy();
+				genCoolDown = 0;
+			}
+			else if(!nextFighter.exists && genCoolDown > ENEMY_DELAY) {
+				nextFighter.genEnemy();
 				genCoolDown = 0;
 			}
 			genCoolDown += FlxG.elapsed;
+			
+			super.update();
+			
+		}
+		
+		public function firstWave():void {
+			//tetraEnemies
 		}
 	}
 }
